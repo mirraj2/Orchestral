@@ -1,24 +1,18 @@
 package orchestral;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
+
+import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.*;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.*;
 
 import com.google.common.base.Throwables;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import javazoom.jl.decoder.JavaLayerException;
-import javazoom.jl.player.FactoryRegistry;
-import javazoom.jl.player.Player;
-import org.apache.commons.io.IOUtils;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
+import com.google.gson.*;
 
 public class Orchestra {
 
@@ -29,7 +23,7 @@ public class Orchestra {
 
   private final JsonParser parser = new JsonParser();
   private final File downloadsFolder;
-  // private final boolean mute
+  private boolean muted = false;
 
 
   private final Map<String, InputStream> preloadCache = new LinkedHashMap<String, InputStream>() {
@@ -58,6 +52,10 @@ public class Orchestra {
     }
   }
 
+  public void setMuted(boolean b) {
+    this.muted = b;
+  }
+
   public void load(final String id) {
     executor.execute(new Runnable() {
       @Override
@@ -73,6 +71,10 @@ public class Orchestra {
   }
 
   public void play(final String id) {
+    if (muted) {
+      return;
+    }
+
     executor.execute(new Runnable() {
       @Override
       public void run() {
